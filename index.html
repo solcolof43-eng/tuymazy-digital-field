@@ -1107,7 +1107,7 @@ float rkH; float rkRough;`)
   else { float gv=groundVis(p); if(z>gv+0.05) discard; li=layerAt(p,z,top,bot); if(uVis[li]<0.5) discard; }
   float s=(p.x+p.y)*0.7071;
   float coll, oil; Rock R=rockAt(li,p,z,top,bot,s,coll,oil);
-  diffuseColor.rgb=R.c; if(uHL>=0){ if(li==uHL) diffuseColor.rgb=mix(R.c,R.c*1.35+vec3(0.10,0.07,0.0),uHLk); else diffuseColor.rgb=mix(R.c,R.c*0.32,uHLk); } diffuseColor.a=uOpa[li]; rkH=R.h; rkRough=R.r; }`)
+  diffuseColor.rgb=R.c; if(uHL>=0){ if(li==uHL) diffuseColor.rgb=mix(R.c,R.c*1.6+vec3(0.16,0.11,0.0),uHLk); else diffuseColor.rgb=mix(R.c,R.c*0.22,uHLk); } diffuseColor.a=uOpa[li]; rkH=R.h; rkRough=R.r; }`)
     .replace('#include <roughnessmap_fragment>','float roughnessFactor = rkRough;')
     .replace('#include <normal_fragment_maps>','#include <normal_fragment_maps>\n normal=bumpN(-vViewPosition,normal,rkH,1.0);');
   };
