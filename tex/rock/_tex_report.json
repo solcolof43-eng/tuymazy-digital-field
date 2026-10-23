@@ -1,0 +1,74 @@
+{
+  "rock_face": {
+    "found": true,
+    "origin": "polyhaven_cdn",
+    "source": "C:\\Users\\KOMPMASTER\\Projects\\3d-field\\web\\_tex_cache\\rock_face_diff_1k.jpg",
+    "cache_dir": "C:\\Users\\KOMPMASTER\\Projects\\3d-field\\web\\_tex_cache",
+    "out": "C:\\Users\\KOMPMASTER\\Projects\\3d-field\\web\\tex\\rock_face.jpg",
+    "out_bytes": 169704
+  },
+  "marble_cliff_05": {
+    "found": true,
+    "origin": "polyhaven_cdn",
+    "source": "C:\\Users\\KOMPMASTER\\Projects\\3d-field\\web\\_tex_cache\\marble_cliff_05_diff_1k.jpg",
+    "cache_dir": "C:\\Users\\KOMPMASTER\\Projects\\3d-field\\web\\_tex_cache",
+    "out": "C:\\Users\\KOMPMASTER\\Projects\\3d-field\\web\\tex\\marble_cliff_05.jpg",
+    "out_bytes": 310601
+  },
+  "dark_rock_02": {
+    "found": true,
+    "origin": "polyhaven_cdn",
+    "source": "C:\\Users\\KOMPMASTER\\Projects\\3d-field\\web\\_tex_cache\\dark_rock_02_diff_1k.jpg",
+    "cache_dir": "C:\\Users\\KOMPMASTER\\Projects\\3d-field\\web\\_tex_cache",
+    "out": "C:\\Users\\KOMPMASTER\\Projects\\3d-field\\web\\tex\\dark_rock_02.jpg",
+    "out_bytes": 125631
+  },
+  "worn_rock_natural_01": {
+    "found": true,
+    "origin": "polyhaven_cdn",
+    "source": "C:\\Users\\KOMPMASTER\\Projects\\3d-field\\web\\_tex_cache\\worn_rock_natural_01_diff_1k.jpg",
+    "cache_dir": "C:\\Users\\KOMPMASTER\\Projects\\3d-field\\web\\_tex_cache",
+    "out": "C:\\Users\\KOMPMASTER\\Projects\\3d-field\\web\\tex\\worn_rock_natural_01.jpg",
+    "out_bytes": 229475
+  },
+  "rock_06": {
+    "found": true,
+    "origin": "polyhaven_cdn",
+    "source": "C:\\Users\\KOMPMASTER\\Projects\\3d-field\\web\\_tex_cache\\rock_06_diff_1k.jpg",
+    "cache_dir": "C:\\Users\\KOMPMASTER\\Projects\\3d-field\\web\\_tex_cache",
+    "out": "C:\\Users\\KOMPMASTER\\Projects\\3d-field\\web\\tex\\rock_06.jpg",
+    "out_bytes": 385271
+  },
+  "rock_01": {
+    "found": true,
+    "origin": "polyhaven_cdn",
+    "source": "C:\\Users\\KOMPMASTER\\Projects\\3d-field\\web\\_tex_cache\\rock_01_diff_1k.jpg",
+    "cache_dir": "C:\\Users\\KOMPMASTER\\Projects\\3d-field\\web\\_tex_cache",
+    "out": "C:\\Users\\KOMPMASTER\\Projects\\3d-field\\web\\tex\\rock_01.jpg",
+    "out_bytes": 350171
+  },
+  "grass_ground": {
+    "found": true,
+    "origin": "polyhaven_cdn",
+    "source": "C:\\Users\\KOMPMASTER\\Projects\\3d-field\\web\\_tex_cache\\grass_ground_diff_1k.jpg",
+    "cache_dir": "C:\\Users\\KOMPMASTER\\Projects\\3d-field\\web\\_tex_cache",
+    "out": "C:\\Users\\KOMPMASTER\\Projects\\3d-field\\web\\tex\\grass_ground.jpg",
+    "out_bytes": 236223
+  },
+  "leafy_grass": {
+    "found": true,
+    "origin": "polyhaven_cdn",
+    "source": "C:\\Users\\KOMPMASTER\\Projects\\3d-field\\web\\_tex_cache\\leafy_grass_diff_1k.jpg",
+    "cache_dir": "C:\\Users\\KOMPMASTER\\Projects\\3d-field\\web\\_tex_cache",
+    "out": "C:\\Users\\KOMPMASTER\\Projects\\3d-field\\web\\tex\\leafy_grass.jpg",
+    "out_bytes": 382937
+  },
+  "gravel_road": {
+    "found": true,
+    "origin": "polyhaven_cdn",
+    "source": "C:\\Users\\KOMPMASTER\\Projects\\3d-field\\web\\_tex_cache\\gravel_road_diff_1k.jpg",
+    "cache_dir": "C:\\Users\\KOMPMASTER\\Projects\\3d-field\\web\\_tex_cache",
+    "out": "C:\\Users\\KOMPMASTER\\Projects\\3d-field\\web\\tex\\gravel_road.jpg",
+    "out_bytes": 148316
+  }
+}
