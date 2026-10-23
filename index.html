@@ -2166,6 +2166,8 @@ $('bStrata').setAttribute('aria-pressed',SL.on); $('bStrata').onclick=()=>{ SL.o
 // ролик
 $('bVideo').onclick=()=>{ $('videoModal').hidden=false; const v=$('videoEl'); try{ v.currentTime=0; v.play(); }catch(e){} };
 $('videoClose').onclick=()=>{ $('videoModal').hidden=true; try{ $('videoEl').pause(); }catch(e){} };
+// ролик показываем только если файл уже выложен
+fetch('media/tuymazy_burenie.mp4',{method:'HEAD'}).then(r=>{ if(!r.ok) throw 0; }).catch(()=>{ $('bVideo').hidden=true; $('tFree').hidden=true; });
 
 
 /* ===================== запуск: титул → сразу месторождение (без глобуса) ===================== */
