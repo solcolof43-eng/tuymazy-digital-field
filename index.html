@@ -630,6 +630,8 @@ const D2R=Math.PI/180;
 const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
 const smooth=(a,b,x)=>{ const t=clamp((x-a)/(b-a),0,1); return t*t*(3-2*t); };
 const lerp=(a,b,t)=>a+(b-a)*t;
+const easeIO=t=>t<0.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
+const reduceMotion=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
 const STANDALONE=(()=>{ try{ return window.top===window.self; }catch(e){ return false; } })();
 // Юго-западный угол прямоугольника модели (ориентировочная привязка: месторождение охватывает г. Октябрьский и Бавлы)
 const FIELD_ORIGIN={ lat:54.327, lon:53.156 };
@@ -1550,7 +1552,7 @@ function setDrillProg(f){ DRILL.prog=f; if(!DRILL.mesh) return; const N=160; DRI
 function drillLayers(P,upto=1){ const out=[]; const L=pathLen(P); const n=Math.ceil(L/2); let prev=null;
   for(let k=0;k<=n*upto;k++){ const q=pathAt(P,k/n); const li=layerIndexAt(q[0],q[1],q[2]); if(li!==prev){ out.push({li,md:q[3],z:q[2],x:q[0],y:q[1]}); prev=li; } }
   return out; }
-function layerIndexAt(x,y,z){ for(let i=0;i<NL;i++){ if(z<=layerTop(i,x,y)+0.01 && z>=layerBot(i,x,y)-0.01) return i; } return z>groundAt(x,y)?-1:NL-1; }
+function layerIndexAt(x,y,z){ if(z>=layerTop(0,x,y)-0.01) return z>groundAt(x,y)+0.5?-1:0; for(let i=0;i<NL;i++){ if(z<=layerTop(i,x,y)+0.01 && z>=layerBot(i,x,y)-0.01) return i; } return z>groundAt(x,y)?-1:NL-1; }
 function startDrillAt(x,y){ x=clamp(x,1500,W-1500); y=clamp(y,1500,H-1500); DRILL.site={x,y}; DRILL.prog=0; DRILL.running=false; if(DRILL.td==null) DRILL.td=Math.round(D3PS_BASE(x,y)-10);
   // разрез через устье: передняя грань участка проходит по скважине
   Object.assign(state.cut,{x0:x-2200,x1:x+2200,y0:y,y1:y+3200}); state.cut.z.on=false; state.cut.p.on=false; syncCutUI(); if(state.zs!==2) setZS(2); applyClip();
@@ -2158,9 +2160,11 @@ function drillHudFrame(){
   const done=DRILL.prog>=0.999;
   let t1, t2;
   if(!done){ t1=`БУРИМ: ${L.name.toUpperCase()}${KIND_TXT[k]?' — '+KIND_TXT[k]:''}`; t2=`Глубина долота ${Math.round(depth).toLocaleString('ru-RU')} м (абс. отметка ${Math.round(q[2]).toLocaleString('ru-RU')} м) · ${L.plain||L.lith}`; }
-  else if(k==='oil'){ t1=`ЗАБОЙ В НЕФТЯНОМ ПЛАСТЕ: ${L.name.toUpperCase()}`; t2=`Глубина ${Math.round(depth).toLocaleString('ru-RU')} м · пласт вскрыт — скважину можно обсаживать и перфорировать`; }
-  else { t1=`ЗАБОЙ: ${L.name.toUpperCase()}`; t2=`Глубина ${Math.round(depth).toLocaleString('ru-RU')} м · ${L.plain||L.lith}`; }
-  const key=t1+'|'+t2; if(key!==SL.hud){ SL.hud=key; $('dh1').textContent=t1; $('dh2').textContent=t2; hud.className='k-'+k; }
+  else { const oil=[]; for(let i=0;i<NL;i++){ const O=STRAT[i]; if(O.kind!=='oil') continue; const top=layerTop(i,q[0],q[1]), bot=layerBot(i,q[0],q[1]); if(top>bot+0.3 && top>=q[2]){ const nm=O.name.split(' —')[0]; if(!oil.includes(nm)) oil.push(nm); } }
+    if(oil.length){ t1=`СКВАЖИНА ДОШЛА ДО НЕФТИ — ЗАБОЙ ${Math.round(depth).toLocaleString('ru-RU')} м`; t2=`Вскрыты нефтяные пласты: ${oil.join(', ')}. Дальше скважину обсаживают и перфорируют напротив них`; hud.dataset.oil='1'; }
+    else { t1=`ЗАБОЙ: ${L.name.toUpperCase()}`; t2=`Глубина ${Math.round(depth).toLocaleString('ru-RU')} м · нефтяной пласт не вскрыт — ${L.plain||L.lith}`; } }
+  const kk=done&&t1.startsWith('СКВАЖИНА ДОШЛА')?'oil':k;
+  const key=t1+'|'+t2; if(key!==SL.hud){ SL.hud=key; $('dh1').textContent=t1; $('dh2').textContent=t2; hud.className='k-'+kk; }
   hud.hidden=false;
 }
 $('bStrata').setAttribute('aria-pressed',SL.on); $('bStrata').onclick=()=>{ SL.on=!SL.on; $('bStrata').setAttribute('aria-pressed',SL.on); SL.built=''; };
