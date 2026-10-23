@@ -423,6 +423,14 @@ ul.timeline li b{display:block;color:var(--fg);font-family:var(--f-mono);font-we
 @media (max-width:1280px){ #strataPanel{width:260px} }
 @media (max-width:900px){ #strataPanel{left:12px;right:12px;width:auto;top:auto;bottom:150px;max-height:34vh} #leaders{display:none} #drillHud{bottom:60px} }
 @media (max-width:520px){ #bStrata{display:none} #bVideo{padding:7px 9px} }
+
+/* ---------- титул: пока модель грузится — без полупрозрачных панелей, фон-снимок ---------- */
+#app.intro #left,#app.intro #right,#app.intro #toolbar,#app.intro #timebar,#app.intro #minimap,#app.intro #legend,#app.intro #compass,#app.intro #strataPanel,#app.intro #leaders,#app.intro #drillHud,#app.intro #bottomnav{visibility:hidden}
+#title::before{content:"";position:absolute;inset:0;z-index:-1;background:#06182c url(data/sat_field_1k.jpg) center/cover no-repeat;transition:opacity 1.2s ease}
+#title.ready::before{opacity:0}
+#title{isolation:isolate}
+#title .btn:disabled{opacity:.45;cursor:wait}
+.btn:hover:not(:disabled){filter:brightness(1.06)}
 </style>
 </head>
 <body>
@@ -440,7 +448,7 @@ ul.timeline li b{display:block;color:var(--fg);font-family:var(--f-mono);font-we
     <div class="tools">
       <button class="btn" id="copyView" title="Ссылка на текущий ракурс и сечения">Поделиться видом</button>
       <button class="btn" id="bStrata" aria-pressed="true" title="Подписи всех пластов с выносками">Подписи пластов</button>
-      <button class="btn" id="bVideo" title="Видеоролик: бурение через все пласты">▶ Ролик</button>
+      <button class="btn" id="bVideo" hidden title="Видеоролик: бурение через все пласты">▶ Ролик</button>
       <button class="iconbtn" id="bShot" hidden title="Снимок экрана" aria-label="Снимок экрана"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg></button>
       <button class="iconbtn" id="bFull" hidden title="Полный экран" aria-label="Полный экран"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
       <button class="iconbtn" id="helpBtn" aria-label="Справка и источники" title="Справка и источники">?</button>
@@ -602,7 +610,7 @@ ul.timeline li b{display:block;color:var(--fg);font-family:var(--f-mono);font-we
       <div class="tk">Цифровая 3D-модель месторождения</div>
       <h1>Туймазинское<br>нефтяное месторождение</h1>
       <p class="tsub">Республика Башкортостан · Республика Татарстан<br>Реальный рельеф и спутниковый снимок · пласты по атласу · скважины, бурение, сценарии</p>
-      <div class="tbtns"><button class="btn primary big" id="tStart" disabled>Открыть модель</button><button class="btn ghost big" id="tFree" disabled>▶ Смотреть ролик</button></div>
+      <div class="tbtns"><button class="btn primary big" id="tStart" disabled>Открыть модель</button><button class="btn ghost big" id="tFree" hidden disabled>▶ Смотреть ролик</button></div>
       <div class="tprog"><i id="tBar"></i></div>
       <div class="tmsg" id="tMsg">Загрузка…</div>
     </div>
@@ -634,6 +642,8 @@ const easeIO=t=>t<0.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
 const reduceMotion=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
 const STANDALONE=(()=>{ try{ return window.top===window.self; }catch(e){ return false; } })();
 // Юго-западный угол прямоугольника модели (ориентировочная привязка: месторождение охватывает г. Октябрьский и Бавлы)
+// ролик: кнопки показываем, только если файл выложен
+fetch('media/tuymazy_burenie.mp4',{method:'HEAD'}).then(r=>{ if(r.ok){ $('bVideo').hidden=false; $('tFree').hidden=false; } }).catch(()=>{});
 const FIELD_ORIGIN={ lat:54.327, lon:53.156 };
 
 /* ----- загрузка: прогресс на титульном экране ----- */
@@ -719,7 +729,11 @@ const fmtLat=v=>`${v.toFixed(5)}° с.ш.`, fmtLon=v=>`${v.toFixed(5)}° в.д.`
 const RIVERS=[];
 await tick(0.3,'Рельеф поверхности (Copernicus DEM)…');
 let DEMJ, DEMB;
-try{ DEMJ=await (await fetch(DATA+'dem_field.json')).json(); DEMB=new Uint16Array(await (await fetch(DATA+'dem_field.u16')).arrayBuffer()); }
+try{ DEMJ=await (await fetch(DATA+'dem_field.json')).json();
+  const bm=await createImageBitmap(await (await fetch(DATA+'dem_field_q.png')).blob(),{colorSpaceConversion:'none',premultiplyAlpha:'none'});
+  const cv=document.createElement('canvas'); cv.width=bm.width; cv.height=bm.height; const cg=cv.getContext('2d',{willReadFrequently:true}); cg.drawImage(bm,0,0);
+  const px=cg.getImageData(0,0,bm.width,bm.height).data; const sc=65535*DEMJ.q/(DEMJ.hmax-DEMJ.hmin); DEMB=new Uint16Array(bm.width*bm.height);
+  for(let i=0;i<DEMB.length;i++) DEMB[i]=Math.min(65535,Math.round((px[i*4]*256+px[i*4+1])*sc)); }
 catch(e){ fail('Не удалось загрузить рельеф (data/dem_field.*).'); }
 function demAt(lat,lon){ const fx=clamp((lon-DEMJ.lon0)/(DEMJ.lon1-DEMJ.lon0)*(DEMJ.w-1),0,DEMJ.w-1.001), fy=clamp((DEMJ.lat1-lat)/(DEMJ.lat1-DEMJ.lat0)*(DEMJ.h-1),0,DEMJ.h-1.001);
   const i=Math.floor(fx), j=Math.floor(fy), u=fx-i, v=fy-j, w=DEMJ.w, k=j*w+i;
@@ -890,14 +904,26 @@ const loadMgr=new THREE.LoadingManager();
 loadMgr.onProgress=(u,l,t)=>{ const el=$('loading'); if(el && !el.classList.contains('err')) el.querySelector('span').textContent=`${Math.round(l/t*100)} %`; };
 loadMgr.onLoad=()=>{ const el=$('loading'); if(el && !el.classList.contains('err')) el.hidden=true; APP.texReady=true; };
 const TL=new THREE.TextureLoader(loadMgr);
-function tex(path,srgb=true,rep=true){ const t=TL.load(path); if(rep){ t.wrapS=t.wrapT=THREE.RepeatWrapping; } t.colorSpace=srgb?THREE.SRGBColorSpace:THREE.NoColorSpace; t.anisotropy=MAXANI; return t; }
+// Тяжёлые текстуры грузятся ПОСЛЕ открытия модели; до этого — нейтральные заглушки (детализация = 1)
+const DEFER=[];
+function phCanvas(rgb){ const c=document.createElement('canvas'); c.width=c.height=4; const g=c.getContext('2d'); g.fillStyle=`rgb(${rgb})`; g.fillRect(0,0,4,4); return c; }
+const PH={ 'grass_a_col':'137,137,137', 'grass_b_col':'137,137,137', 'dry_col':'97,97,97' };
+function tex(path,srgb=true,rep=true){ const key=path.split('/').pop().replace('.jpg','');
+  const t=new THREE.Texture(phCanvas(srgb?(PH[key]||'128,128,128'):'128,128,255')); t.needsUpdate=true;
+  if(rep){ t.wrapS=t.wrapT=THREE.RepeatWrapping; } t.colorSpace=srgb?THREE.SRGBColorSpace:THREE.NoColorSpace; t.anisotropy=MAXANI; DEFER.push([t,path]); return t; }
+function loadDeferred(){ let i=0, active=0, done=0; const N=DEFER.length;
+  const pump=()=>{ while(active<3 && i<N){ const [t,p]=DEFER[i++]; active++; const im=new Image(); im.crossOrigin='anonymous';
+      const fin=()=>{ active--; done++; if(done>=N) APP.texReady=true; pump(); };
+      im.onload=()=>{ t.image=im; t.dispose(); t.needsUpdate=true; fin(); }; im.onerror=fin; im.src=p; } };
+  pump(); }
+const SAT1K=await new Promise((res,rej)=>{ const im=new Image(); im.onload=()=>res(im); im.onerror=()=>rej(new Error('sat')); im.src=DATA+'sat_field_1k.jpg'; }).catch(()=>fail('Не удалось загрузить спутниковый снимок (data/sat_field_1k.jpg).'));
 const GT={ grassA:tex(TEX+'ground/grass_a_col.jpg'), grassB:tex(TEX+'ground/grass_b_col.jpg'), grassC:tex(TEX+'ground/grass_c_col.jpg'), grassN:tex(TEX+'ground/grass_a_nrm.jpg',false),
   soil:tex(TEX+'ground/soil_col.jpg'), soilN:tex(TEX+'ground/soil_nrm.jpg',false), dirt:tex(TEX+'ground/dirt_col.jpg'), dry:tex(TEX+'ground/dry_col.jpg'),
   gravel:tex(TEX+'ground/gravel_col.jpg'), gravelN:tex(TEX+'ground/gravel_nrm.jpg',false), sand:tex(TEX+'ground/sand_col.jpg'), waterN:tex(TEX+'ground/water_nrm.jpg',false) };
 const MASKBLUR=(()=>{ const c=document.createElement('canvas'); c.width=MASK.w; c.height=MASK.h; const g=c.getContext('2d'); g.filter='blur(5px)'; g.drawImage(MASK.img,0,0); return c; })();
 const NZTEX=new THREE.DataTexture(NZ.data,NZ.w,NZ.h,THREE.RGBAFormat); NZTEX.magFilter=NZTEX.minFilter=THREE.LinearFilter; NZTEX.needsUpdate=true;
 const MASKTEX=new THREE.Texture(MASKBLUR); MASK.blur=MASKBLUR.getContext('2d',{willReadFrequently:true}).getImageData(0,0,MASK.w,MASK.h).data; MASKTEX.needsUpdate=true; MASKTEX.colorSpace=THREE.NoColorSpace; MASKTEX.minFilter=THREE.LinearFilter; MASKTEX.magFilter=THREE.LinearFilter; MASKTEX.generateMipmaps=false;
-const SATTEX=tex(DATA+'sat_field.jpg',true,false); SATTEX.wrapS=SATTEX.wrapT=THREE.ClampToEdgeWrapping;
+const SATTEX=tex(DATA+'sat_field.jpg',true,false); SATTEX.image=SAT1K; SATTEX.wrapS=SATTEX.wrapT=THREE.ClampToEdgeWrapping; DEFER.unshift(DEFER.pop());
 const ATLAS=tex(DATA+'atlas_map.jpg',true,false); ATLAS.wrapS=ATLAS.wrapT=THREE.ClampToEdgeWrapping;
 const terrainOff=()=>NL*state.explode;
 const layerOff=(li)=>(NL-1-li)*state.explode;
@@ -1162,7 +1188,6 @@ function buildLandcover(){
   const ot=new THREE.CanvasTexture(ov); ot.colorSpace=THREE.NoColorSpace;
   return { lt, ot };
 }
-const SAT1K=await new Promise((res,rej)=>{ const im=new Image(); im.onload=()=>res(im); im.onerror=()=>rej(new Error('sat')); im.src=DATA+'sat_field_1k.jpg'; }).catch(()=>fail('Не удалось загрузить спутниковый снимок (data/sat_field_1k.jpg).'));
 await tick(0.64,'Спутниковый снимок и лес…');
 const LCT=buildLandcover();
 await tick(0.74,'Поверхность и пласты…');
@@ -2171,8 +2196,6 @@ $('bStrata').setAttribute('aria-pressed',SL.on); $('bStrata').onclick=()=>{ SL.o
 // ролик
 $('bVideo').onclick=()=>{ $('videoModal').hidden=false; const v=$('videoEl'); try{ v.currentTime=0; v.play(); }catch(e){} };
 $('videoClose').onclick=()=>{ $('videoModal').hidden=true; try{ $('videoEl').pause(); }catch(e){} };
-// ролик показываем только если файл уже выложен
-fetch('media/tuymazy_burenie.mp4',{method:'HEAD'}).then(r=>{ if(!r.ok) throw 0; }).catch(()=>{ $('bVideo').hidden=true; $('tFree').hidden=true; });
 
 
 /* ===================== запуск: титул → сразу месторождение (без глобуса) ===================== */
@@ -2196,12 +2219,9 @@ APP.fieldReady=true; APP.present=false; window.__APP=APP;
 window.__t={ setSector, fullBlock, startDrillAt, runDrill, setView, selectWell, select, setZS, setYear, applyFrac, applyPoly, applyZbs, setMode, state, WELLS, LOGS, DRILL, STRAT, applyLayers, applyClip, syncCutUI, camera, controls, animateCam, W, H, topAt, groundAt, SL };
 setYear(2026,true); mmSetup(); setQuality(QMODE);
 setScene('field'); applyViewOffsets(); requestAnimationFrame(loop);
-await tick(0.9,'Текстуры…');
-const waitTex=()=>new Promise(r=>{ const t0=performance.now(); const f=()=>{ if(APP.texReady||performance.now()-t0>15000) r(); else setTimeout(f,120); }; f(); });
-await waitTex();
-initTrees().catch(e=>console.warn('деревья',e));
 bootStep(1,'Готово'); APP.ready=true; $('title').classList.add('ready');
 $('tStart').disabled=false; $('tFree').disabled=false;
+setTimeout(()=>{ loadDeferred(); setTimeout(()=>initTrees().catch(e=>console.warn('деревья',e)),1500); },300);
 function closeTitle(){ $('title').classList.add('out'); $('app').classList.remove('intro'); setTimeout(()=>{ $('title').hidden=true; applyViewOffsets(); },700); applyViewOffsets(); }
 $('tStart').onclick=()=>{ closeTitle(); setView('iso'); };
 $('tFree').onclick=()=>{ closeTitle(); setView('iso',true); $('bVideo').click(); };

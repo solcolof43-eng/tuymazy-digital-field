@@ -7,5 +7,6 @@
  "lat1": 54.617,
  "lon0": 53.156,
  "lon1": 53.756,
- "source": "Copernicus DEM GLO-30"
+ "source": "Copernicus DEM GLO-30",
+ "q": 0.25
 }
