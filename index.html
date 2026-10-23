@@ -411,9 +411,9 @@ ul.timeline li b{display:block;color:var(--fg);font-family:var(--f-mono);font-we
 #drillHud:not([hidden]){display:block}
 #drillHud .dh1{font-weight:700;font-size:17px;letter-spacing:.02em}
 #drillHud .dh2{font-size:12.5px;color:#c5d3e0;margin-top:3px}
-#drillHud.oil{border-color:#e9a046;background:rgba(60,34,4,.94)}
-#drillHud.wat{border-color:#4f8fc9}
-#drillHud.cap{border-color:#8a99a8}
+#drillHud.k-oil{border-color:#e9a046;background:rgba(60,34,4,.94)}
+#drillHud.k-wat{border-color:#4f8fc9}
+#drillHud.k-cap{border-color:#8a99a8}
 #videoModal{position:fixed;inset:0;z-index:60;background:rgba(3,12,22,.78);display:grid;place-items:center;padding:16px}
 #videoModal[hidden]{display:none}
 #videoModal .vcard{background:var(--panel);border-radius:var(--r);box-shadow:var(--sh);width:min(1100px,100%);overflow:hidden}
@@ -2160,7 +2160,7 @@ function drillHudFrame(){
   if(!done){ t1=`БУРИМ: ${L.name.toUpperCase()}${KIND_TXT[k]?' — '+KIND_TXT[k]:''}`; t2=`Глубина долота ${Math.round(depth).toLocaleString('ru-RU')} м (абс. отметка ${Math.round(q[2]).toLocaleString('ru-RU')} м) · ${L.plain||L.lith}`; }
   else if(k==='oil'){ t1=`ЗАБОЙ В НЕФТЯНОМ ПЛАСТЕ: ${L.name.toUpperCase()}`; t2=`Глубина ${Math.round(depth).toLocaleString('ru-RU')} м · пласт вскрыт — скважину можно обсаживать и перфорировать`; }
   else { t1=`ЗАБОЙ: ${L.name.toUpperCase()}`; t2=`Глубина ${Math.round(depth).toLocaleString('ru-RU')} м · ${L.plain||L.lith}`; }
-  const key=t1+'|'+t2; if(key!==SL.hud){ SL.hud=key; $('dh1').textContent=t1; $('dh2').textContent=t2; hud.className=k; }
+  const key=t1+'|'+t2; if(key!==SL.hud){ SL.hud=key; $('dh1').textContent=t1; $('dh2').textContent=t2; hud.className='k-'+k; }
   hud.hidden=false;
 }
 $('bStrata').setAttribute('aria-pressed',SL.on); $('bStrata').onclick=()=>{ SL.on=!SL.on; $('bStrata').setAttribute('aria-pressed',SL.on); SL.built=''; };
