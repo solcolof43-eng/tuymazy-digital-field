@@ -421,6 +421,7 @@ ul.timeline li b{display:block;color:var(--fg);font-family:var(--f-mono);font-we
 #videoModal video{display:block;width:100%;background:#000;max-height:76vh}
 @media (max-width:1280px){ #strataPanel{width:260px} }
 @media (max-width:900px){ #strataPanel{left:12px;right:12px;width:auto;top:auto;bottom:150px;max-height:34vh} #leaders{display:none} #drillHud{bottom:60px} }
+@media (max-width:520px){ #bStrata{display:none} #bVideo{padding:7px 9px} }
 </style>
 </head>
 <body>
@@ -2102,7 +2103,7 @@ function fieldFrame(now){ if(now-MM.t>110){ MM.t=now; mmDraw(); } }
    ===================================================================== */
 const SWATCH={ redbeds:'#9a4a33', limestone:'#c9c2b2', argillite:'#6d7176', sandstone:'#c9a46b', dolomite:'#b3a58b', domanik:'#3a332d', wetsand:'#8fa9c4', gneiss:'#a08a86' };
 const KIND_TXT={ oil:'НЕФТЬ', cap:'ПОКРЫШКА', src:'НЕФТЕМАТЕРИНСКАЯ', wat:'ВОДА' };
-const SL={ on:true, anchor:null, rows:[], built:'', cur:-1, hud:'' };
+const SL={ on:innerWidth>900, anchor:null, rows:[], built:'', cur:-1, hud:'' };
 function strataAnchor(){
   if(DRILL.site) return { x:DRILL.site.x, y:DRILL.site.y, what:'· у буровой' };
   const s=state.selected; if(s && s.kind==='well' && s.w) return { x:s.w.x, y:s.w.y, what:`· у скважины ${s.w.id??''}`.trim() };
@@ -2161,7 +2162,7 @@ function drillHudFrame(){
   const key=t1+'|'+t2; if(key!==SL.hud){ SL.hud=key; $('dh1').textContent=t1; $('dh2').textContent=t2; hud.className=k; }
   hud.hidden=false;
 }
-$('bStrata').onclick=()=>{ SL.on=!SL.on; $('bStrata').setAttribute('aria-pressed',SL.on); SL.built=''; };
+$('bStrata').setAttribute('aria-pressed',SL.on); $('bStrata').onclick=()=>{ SL.on=!SL.on; $('bStrata').setAttribute('aria-pressed',SL.on); SL.built=''; };
 // ролик
 $('bVideo').onclick=()=>{ $('videoModal').hidden=false; const v=$('videoEl'); try{ v.currentTime=0; v.play(); }catch(e){} };
 $('videoClose').onclick=()=>{ $('videoModal').hidden=true; try{ $('videoEl').pause(); }catch(e){} };
