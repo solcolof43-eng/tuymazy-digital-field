@@ -431,6 +431,9 @@ ul.timeline li b{display:block;color:var(--fg);font-family:var(--f-mono);font-we
 #title{isolation:isolate}
 #title .btn:disabled{opacity:.45;cursor:wait}
 .btn:hover:not(:disabled){filter:brightness(1.06)}
+#spList .sr{cursor:pointer}
+#spList .sr:hover{background:rgba(159,195,230,.18)}
+#spList .sr:hover .sn{color:#fff}
 </style>
 </head>
 <body>
@@ -1040,7 +1043,7 @@ const PROPS=(()=>{ const d=new Uint8Array(NX*NY*NL*4);
   const t=new THREE.DataArrayTexture(d,NX,NY,NL); t.minFilter=t.magFilter=THREE.LinearFilter; t.generateMipmaps=false; t.needsUpdate=true; return t; })();
 const ROCKTYPE={ redbeds:1, limestone:2, argillite:3, sandstone:4, dolomite:5, domanik:6, wetsand:7, gneiss:8 };
 const NPL=6;
-const ROCK_U={ uTops:{value:TOPS}, uProps:{value:PROPS}, uRelk:{value:1}, uZref:{value:ZREF}, uWoc:{value:0},
+const ROCK_U={ uHL:{value:-1}, uHLk:{value:0}, uTops:{value:TOPS}, uProps:{value:PROPS}, uRelk:{value:1}, uZref:{value:ZREF}, uWoc:{value:0},
   uMat:{value:STRAT.map(L=>ROCKTYPE[L.tex]||3)}, uOwc:{value:STRAT.map(L=>L.owc??-1e5)}, uRes:{value:STRAT.map(L=>L.res?1:0)}, uColl:{value:STRAT.map(L=>L.coll??-1)}, uHasP:{value:STRAT.map(L=>L.P?1:0)},
   uVis:{value:STRAT.map(()=>1)}, uOpa:{value:STRAT.map(()=>1)}, uPl:{value:Array.from({length:NPL},()=>new THREE.Vector4(0,1,0,1e9))}, uSoil:{value:1},
   uRkRed:{value:tex(TEX+'rock/rock_face.jpg')}, uRkLime:{value:tex(TEX+'rock/marble_cliff_05.jpg')}, uRkShale:{value:tex(TEX+'rock/dark_rock_02.jpg')}, uRkSand:{value:tex(TEX+'rock/worn_rock_natural_01.jpg')}, uRkDolo:{value:tex(TEX+'rock/rock_06.jpg')}, uRkGran:{value:tex(TEX+'rock/rock_01.jpg')} };
@@ -1049,7 +1052,7 @@ const ROCK_GLSL=`
 precision highp sampler2DArray;
 uniform sampler2DArray uTops; uniform sampler2DArray uProps; uniform sampler2D uMask; uniform sampler2D uNz;
 uniform float uW; uniform float uH; uniform float uZS; uniform float uRelk; uniform float uZref; uniform float uTime; uniform float uWoc; uniform float uSoil;
-uniform int uMode;
+uniform int uMode; uniform int uHL; uniform float uHLk;
 uniform float uMat[${NL}]; uniform float uOwc[${NL}]; uniform float uRes[${NL}]; uniform float uColl[${NL}]; uniform float uHasP[${NL}]; uniform float uVis[${NL}]; uniform float uOpa[${NL}];
 uniform vec4 uPl[${NPL}];
 float rH1(float n){ return fract(sin(n*12.9898)*43758.5453); }
@@ -1104,7 +1107,7 @@ float rkH; float rkRough;`)
   else { float gv=groundVis(p); if(z>gv+0.05) discard; li=layerAt(p,z,top,bot); if(uVis[li]<0.5) discard; }
   float s=(p.x+p.y)*0.7071;
   float coll, oil; Rock R=rockAt(li,p,z,top,bot,s,coll,oil);
-  diffuseColor.rgb=R.c; diffuseColor.a=uOpa[li]; rkH=R.h; rkRough=R.r; }`)
+  diffuseColor.rgb=R.c; if(uHL>=0){ if(li==uHL) diffuseColor.rgb=mix(R.c,R.c*1.35+vec3(0.10,0.07,0.0),uHLk); else diffuseColor.rgb=mix(R.c,R.c*0.32,uHLk); } diffuseColor.a=uOpa[li]; rkH=R.h; rkRough=R.r; }`)
     .replace('#include <roughnessmap_fragment>','float roughnessFactor = rkRough;')
     .replace('#include <normal_fragment_maps>','#include <normal_fragment_maps>\n normal=bumpN(-vViewPosition,normal,rkH,1.0);');
   };
@@ -2152,6 +2155,9 @@ function strataBuild(a){
     const tag=KIND_TXT[k]?`<b class="k ${k}">${KIND_TXT[k]}</b>`:'';
     return `<div class="sr ${k}" data-li="${r.li}"><i style="background:${SWATCH[L.tex]||'#888'}"></i><div class="st"><div class="sn">${L.name} <span class="si">${L.idx}</span> ${tag}</div><div class="sd">${fm(r.d0)}–${fm(r.d1)} м · ${L.plain||L.lith}</div></div></div>`; }).join('');
   SL.rows=rows.map(r=>({...r, el:$('spList').querySelector(`[data-li="${r.li}"]`)}));
+  for(const r of SL.rows){ if(!r.el) continue; r.el.title='Наведите — пласт подсветится на разрезе. Щелчок — показать только его';
+    r.el.onmouseenter=()=>hlLayer(r.li); r.el.onmouseleave=()=>hlLayer(-1);
+    r.el.onclick=()=>{ const b=document.querySelector(`[data-solo="${r.li}"]`); if(b) b.click(); SL.built=''; }; }
 }
 const _sv=new THREE.Vector3();
 function strataFrame(){
@@ -2196,6 +2202,11 @@ $('bStrata').setAttribute('aria-pressed',SL.on); $('bStrata').onclick=()=>{ SL.o
 // ролик
 $('bVideo').onclick=()=>{ $('videoModal').hidden=false; const v=$('videoEl'); try{ v.currentTime=0; v.play(); }catch(e){} };
 $('videoClose').onclick=()=>{ $('videoModal').hidden=true; try{ $('videoEl').pause(); }catch(e){} };
+
+// подсветка пласта при наведении: плавно
+let HLT=null;
+function hlLayer(li){ if(li>=0) ROCK_U.uHL.value=li; const to=li>=0?1:0, from=ROCK_U.uHLk.value, t0=performance.now(); cancelAnimationFrame(HLT);
+  const f=()=>{ const k=Math.min(1,(performance.now()-t0)/220); ROCK_U.uHLk.value=from+(to-from)*k; if(k<1) HLT=requestAnimationFrame(f); else if(to===0) ROCK_U.uHL.value=-1; }; f(); }
 
 
 /* ===================== запуск: титул → сразу месторождение (без глобуса) ===================== */
